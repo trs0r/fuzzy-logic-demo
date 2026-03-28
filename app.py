@@ -42,12 +42,14 @@ service['schlecht'] = serv_lo; service['gut'] = serv_md; service['exzellent'] = 
 tip['wenig'] = tip_lo; tip['mittel'] = tip_md; tip['hoch'] = tip_hi
 
 rule1 = ctrl.Rule(essen['schlecht'] | service['schlecht'], tip['wenig'])
-rule2 = ctrl.Rule(essen['gut'] & service['gut'], tip['mittel'])
+rule2 = ctrl.Rule((essen['gut'] & service['gut']) | 
+                  (essen['gut'] & service['exzellent']) | 
+                  (essen['exzellent'] & service['gut']), tip['mittel'])
 rule3 = ctrl.Rule(essen['exzellent'] & service['exzellent'], tip['hoch'])
 tipping_sim = ctrl.ControlSystemSimulation(ctrl.ControlSystem([rule1, rule2, rule3]))
 
 @st.cache_data
-def get_3d_surface(version=2):
+def get_3d_surface(version=3):
     upsampled = np.linspace(0, 10, 25)
     x_3d, y_3d = np.meshgrid(upsampled, upsampled)
     z_3d = np.zeros_like(x_3d)
@@ -72,9 +74,14 @@ bill = st.sidebar.number_input("Rechnungsbetrag in €", min_value=0.0, value=50
 mu_e_lo = fuzz.interp_membership(x_essen, essen_lo, e); mu_e_md = fuzz.interp_membership(x_essen, essen_md, e); mu_e_hi = fuzz.interp_membership(x_essen, essen_hi, e)
 mu_s_lo = fuzz.interp_membership(x_service, serv_lo, s); mu_s_md = fuzz.interp_membership(x_service, serv_md, s); mu_s_hi = fuzz.interp_membership(x_service, serv_hi, s)
 
-act1 = np.fmax(mu_e_lo, mu_s_lo); out1 = np.fmin(act1, tip_lo) # OR = np.fmax
-act2 = np.fmin(mu_e_md, mu_s_md); out2 = np.fmin(act2, tip_md) # AND = np.fmin
-act3 = np.fmin(mu_e_hi, mu_s_hi); out3 = np.fmin(act3, tip_hi) # AND = np.fmin
+act1 = np.fmax(mu_e_lo, mu_s_lo); out1 = np.fmin(act1, tip_lo)
+act2_1 = np.fmin(mu_e_md, mu_s_md)
+act2_2 = np.fmin(mu_e_md, mu_s_hi)
+act2_3 = np.fmin(mu_e_hi, mu_s_md)
+act2 = np.fmax(act2_1, np.fmax(act2_2, act2_3)) 
+out2 = np.fmin(act2, tip_md)
+
+act3 = np.fmin(mu_e_hi, mu_s_hi); out3 = np.fmin(act3, tip_hi)
 
 agg = np.fmax(out1, np.fmax(out2, out3))
 try: res = fuzz.defuzz(x_tip, agg, 'centroid')
@@ -100,8 +107,7 @@ with col1:
     
     # Regel 2
     axes[1].plot(x_tip, tip_md, 'k:', alpha=0.3); axes[1].fill_between(x_tip, 0, out2, color='orange', alpha=0.6)
-    axes[1].set_title(f"R2: Essen gut AND Service gut (Akt: {act2*100:.0f}%)", fontweight='bold'); axes[1].set_ylim(0, 1.1); axes[1].set_yticks([])
-    
+    axes[1].set_title(f"R2: Beides gut bis exzellent (Akt: {act2*100:.0f}%)", fontweight='bold'); axes[1].set_ylim(0, 1.1); axes[1].set_yticks([])
     # Regel 3
     axes[2].plot(x_tip, tip_hi, 'k:', alpha=0.3); axes[2].fill_between(x_tip, 0, out3, color='green', alpha=0.6)
     axes[2].set_title(f"R3: Essen exzellent AND Service exzellent (Akt: {act3*100:.0f}%)", fontweight='bold'); axes[2].set_ylim(0, 1.1); axes[2].set_yticks([])
