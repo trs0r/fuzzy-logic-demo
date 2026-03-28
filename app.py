@@ -26,11 +26,12 @@ st.divider()
 
 x_essen = np.arange(0, 11, 0.1)
 x_service = np.arange(0, 11, 0.1)
-x_tip = np.arange(0, 26, 0.1)
+x_tip = np.arange(0, 15.1, 0.1) 
 
 essen_lo = fuzz.trimf(x_essen, [0, 0, 5]); essen_md = fuzz.trimf(x_essen, [0, 5, 10]); essen_hi = fuzz.trimf(x_essen, [5, 10, 10])
 serv_lo = fuzz.trimf(x_service, [0, 0, 5]); serv_md = fuzz.trimf(x_service, [0, 5, 10]); serv_hi = fuzz.trimf(x_service, [5, 10, 10])
-tip_lo = fuzz.trimf(x_tip, [0, 0, 13]); tip_md = fuzz.trimf(x_tip, [0, 13, 25]); tip_hi = fuzz.trimf(x_tip, [13, 25, 25])
+
+tip_lo = fuzz.trimf(x_tip, [0, 0, 7.5]); tip_md = fuzz.trimf(x_tip, [0, 7.5, 15]); tip_hi = fuzz.trimf(x_tip, [7.5, 15, 15])
 
 essen = ctrl.Antecedent(x_essen, 'essen')
 service = ctrl.Antecedent(x_service, 'service')
@@ -60,9 +61,13 @@ def get_3d_surface():
 
 x_3d, y_3d, z_3d = get_3d_surface()
 
-st.sidebar.header("Bitte bewerten:")
+st.sidebar.header("1. Bitte bewerten:")
 e = st.sidebar.slider("Bewertung Essen (0-10)", 0.0, 10.0, 6.5, 0.1)
 s = st.sidebar.slider("Bewertung Service (0-10)", 0.0, 10.0, 7.5, 0.1)
+
+st.sidebar.markdown("---")
+st.sidebar.header("2. Rechnung:")
+bill = st.sidebar.number_input("Rechnungsbetrag in €", min_value=0.0, value=50.0, step=1.0)
 
 mu_e_lo = fuzz.interp_membership(x_essen, essen_lo, e); mu_e_hi = fuzz.interp_membership(x_essen, essen_hi, e)
 mu_s_lo = fuzz.interp_membership(x_service, serv_lo, s); mu_s_md = fuzz.interp_membership(x_service, serv_md, s); mu_s_hi = fuzz.interp_membership(x_service, serv_hi, s)
@@ -74,6 +79,13 @@ act3 = np.fmax(mu_e_hi, mu_s_hi); out3 = np.fmin(act3, tip_hi)
 agg = np.fmax(out1, np.fmax(out2, out3))
 try: res = fuzz.defuzz(x_tip, agg, 'centroid')
 except: res = 0
+
+tip_euro = bill * (res / 100)
+
+st.sidebar.markdown("---")
+st.sidebar.header("Dein Ergebnis:")
+st.sidebar.success(f"**Trinkgeld: {tip_euro:.2f} €** \n\n*(entspricht {res:.2f} %)*")
+st.sidebar.info(f"**Gesamtsumme: {bill + tip_euro:.2f} €**")
 
 col1, col2 = st.columns([1, 1.2])
 
@@ -94,7 +106,7 @@ with col1:
     # Ergebnis
     axes[3].plot(x_tip, tip_lo, 'k:', alpha=0.1); axes[3].plot(x_tip, tip_md, 'k:', alpha=0.1); axes[3].plot(x_tip, tip_hi, 'k:', alpha=0.1)
     axes[3].fill_between(x_tip, 0, agg, color='gray', alpha=0.5); axes[3].axvline(x=res, color='blue', linewidth=3)
-    axes[3].set_title(f"Ergebnis (Schwerpunkt): {res:.2f}€", fontweight='bold'); axes[3].set_ylim(0, 1.1); axes[3].set_yticks([])
+    axes[3].set_title(f"Ergebnis (Schwerpunkt): {res:.2f}%", fontweight='bold'); axes[3].set_ylim(0, 1.1); axes[3].set_yticks([])
     
     st.pyplot(fig)
 
