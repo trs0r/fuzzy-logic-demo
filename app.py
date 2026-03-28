@@ -15,10 +15,12 @@ Dieses Dashboard demonstriert den klassischen **Mamdani-Inferenz-Prozess**. Anst
 Spiele mit den Slidern an der Seite und beobachte, wie das System in drei Schritten das Trinkgeld berechnet:
 
 1. **Fuzzifizierung (Inputs):** Deine Bewertungen für Essen und Service (scharfe Werte von 0-10) werden in unscharfe Mengen übersetzt. Eine Bewertung von 6.5 ist beispielsweise nicht einfach nur "gut", sondern vielleicht zu 70% "gut" und zu 30% "exzellent".
-2. **Inferenz (Regelauswertung):** Das System wendet drei "Wenn-Dann"-Regeln an. 
-   * Bei einer **OR-Verknüpfung** nimmt das System das *Maximum*, bei einer **AND-Verknüpfung** das *Minimum* der beiden Zugehörigkeiten. 
-   * Dieser Wert "schneidet" dann das resultierende Trinkgeld-Dreieck ab (die farbig gefüllten Flächen).
-3. **Defuzzifizierung (Schwerpunkt):** Alle abgeschnittenen Dreiecke werden übereinandergelegt (graue Fläche). Da der Kellner am Ende echtes Geld sehen will, berechnen wir den geometrischen Schwerpunkt (Centroid) dieser Fläche (die blaue Linie). Das ist das finale Trinkgeld!
+2. **Inferenz (Regelauswertung):** Das System wendet drei "Wenn-Dann"-Regeln an:
+   * **Regel 1:** Wenn das Essen *oder* der Service schlecht bewertet wird, zieht das sofort das gesamte Trinkgeld nach unten.
+   * **Regel 2:** Wenn beides solide bis gut ist (aber nicht perfekt), gibt es ein mittleres Trinkgeld.
+   * **Regel 3:** Nur wenn Essen *und* Service exzellent sind, gibt es das maximale Trinkgeld.
+   * *(Technik-Detail: Bei einer **OR-Verknüpfung** nimmt das System das Maximum, bei **AND** das Minimum der Zugehörigkeiten. Dieser Wert "schneidet" dann das resultierende Trinkgeld-Dreieck ab).*
+3. **Defuzzifizierung (Schwerpunkt):** Alle abgeschnittenen Dreiecke werden übereinandergelegt (graue Fläche). Am Ende wird der geometrischen Schwerpunkt (Centroid) dieser Fläche (die blaue Linie) berechnet. Das ist das finale Trinkgeld!
 
 **Tipp:** Drehe den 3D-Graphen auf der rechten Seite! Er zeigt dir den kompletten Lösungsraum, also jedes erdenkliche Trinkgeld für jede mögliche Kombination aus Essen und Service.
 """)
